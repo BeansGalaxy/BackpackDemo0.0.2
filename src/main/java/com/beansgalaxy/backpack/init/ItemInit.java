@@ -11,5 +11,7 @@ public class ItemInit {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Backpack.MODID);
 
     public static final RegistryObject<Item> LEATHER_BACKPACK = ITEMS.register("leather_backpack",
-            ()-> new BackpackType(new Item.Properties().stacksTo(1)));
+            ()-> new BackpackType(new Item.Properties().stacksTo(1), 6, "leather"));
+    public static final RegistryObject<Item> IRON_BACKPACK = ITEMS.register("iron_backpack",
+            ()-> new BackpackType(new Item.Properties().stacksTo(1), 9, "iron"));
 }

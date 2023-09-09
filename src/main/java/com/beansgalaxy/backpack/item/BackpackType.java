@@ -6,7 +6,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -25,14 +24,26 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DispenserBlock;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public final class BackpackType extends Item implements Equipable {
-    public BackpackType(Properties pProperties) {
+
+public class BackpackType extends Item implements Equipable {
+    public BackpackType(Properties pProperties, int bpStacks, String bpType) {
         super(pProperties);
         DispenserBlock.registerBehavior(this, ArmorItem.DISPENSE_ITEM_BEHAVIOR);
+        this.MAX_STACK = bpStacks;
+        this.MAX_ITEMS = bpStacks * 64;
+        this.TYPE = bpType;
     }
+    public String TYPE;
+    public int MAX_STACK;
+    private int MAX_ITEMS;
+
+    private static final int BAR_COLOR = Mth.color(0.4F, 0.4F, 1.0F);
+
+    // IF RIGHT-CLICKED WHEN HELD, PLACES BACKPACK ONTO BACK
     public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
         return this.swapWithEquipmentSlot(this, pLevel, pPlayer, pHand); }
     public SoundEvent getEquipSound() {
@@ -42,10 +53,10 @@ public final class BackpackType extends Item implements Equipable {
         return EquipmentSlot.CHEST;
     }
 
-    private static final int MAX_STACK = 6;
-    private static final int MAX_ITEMS = MAX_STACK * 64;
-    private static final int BAR_COLOR = Mth.color(0.4F, 0.4F, 1.0F);
-
+    /**
+     * UNDER THE HOOD CALCULATIONS
+     **/
+    // UNSURE  : SOMETHING TO DO WITH ALLOWING THE PLAYER TO PLACE ITEMS INTO BACKPACK
     public boolean overrideStackedOnOther(ItemStack pStack, Slot pSlot, ClickAction pAction, Player pPlayer) {
         if (pStack.getCount() != 1 || pAction != ClickAction.SECONDARY) {
             return false;
@@ -66,7 +77,7 @@ public final class BackpackType extends Item implements Equipable {
             return true;
         }
     }
-
+    // UNSURE
     public boolean overrideOtherStackedOnMe(ItemStack pStack, ItemStack pOther, Slot pSlot, ClickAction pAction, Player pPlayer, SlotAccess pAccess) {
         if (pStack.getCount() != 1) return false;
         if (pAction == ClickAction.SECONDARY && pSlot.allowModification(pPlayer)) {
@@ -89,9 +100,51 @@ public final class BackpackType extends Item implements Equipable {
         }
     }
 
+    //THE IMPUTED ITEMS MAX STACK SIZE IS FLIPPED TO GET BUNDLE FULLNESS
+    private static int getWeight(ItemStack pStack) {
+        if (pStack.is(Items.BUNDLE)) {
+            return 4 + getContentWeight(pStack);
+        } else {
+            if ((pStack.is(Items.BEEHIVE) || pStack.is(Items.BEE_NEST)) && pStack.hasTag()) {
+                CompoundTag compoundtag = BlockItem.getBlockEntityData(pStack);
+                if (compoundtag != null && !compoundtag.getList("Bees", 10).isEmpty()) {
+                    return 64;
+                }
+            }
+
+            return 64 / pStack.getMaxStackSize();
+        }
+    }
+
+    // ADDS WEIGHT OF ALL ITEMS CURRENTLY INSIDE BACKPACK
+    private static int getContentWeight(ItemStack pStack) {
+        return getContents(pStack).mapToInt((p_186356_) -> {
+            return getWeight(p_186356_) * p_186356_.getCount();
+        }).sum();
+    }
+
+    // VIEWS ALL ITEMS INSIDE BACKPACK
+    private static Stream<ItemStack> getContents(ItemStack pStack) {
+        CompoundTag compoundtag = pStack.getTag();
+        if (compoundtag == null) {
+            return Stream.empty();
+        } else {
+            ListTag listtag = compoundtag.getList("Items", 10);
+            return listtag.stream().map(CompoundTag.class::cast).map(ItemStack::of);
+        }
+    }
+
+    /**
+     * GUI INTERACTIONS
+     **/
+    // UNSURE  : MIGHT DETERMINE IF ITEM GOING IN HAS A MATCH
+    private static Optional<CompoundTag> getMatchingItem(ItemStack pStack, ListTag pList) {
+        return pStack.is(Items.BUNDLE) ? Optional.empty() : pList.stream().filter(CompoundTag.class::isInstance).map(CompoundTag.class::cast)
+                .filter((p_186350_) -> ItemStack.isSameItemSameTags(ItemStack.of(p_186350_), pStack)).findFirst();
+    }
 
     // STORES ITEMS INTO BACKPACK
-    private static int add(ItemStack pBundleStack, ItemStack pInsertedStack) {
+    private int add(ItemStack pBundleStack, ItemStack pInsertedStack) {
         if (!pInsertedStack.isEmpty() && pInsertedStack.getItem().canFitInsideContainerItems()) {
             CompoundTag compoundtag = pBundleStack.getOrCreateTag();
             if (!compoundtag.contains("Items")) {
@@ -128,35 +181,7 @@ public final class BackpackType extends Item implements Equipable {
         }
     }
 
-    private static Optional<CompoundTag> getMatchingItem(ItemStack pStack, ListTag pList) {
-        return pStack.is(Items.BUNDLE) ? Optional.empty() : pList.stream().filter(CompoundTag.class::isInstance).map(CompoundTag.class::cast).filter((p_186350_) -> {
-            return ItemStack.isSameItemSameTags(ItemStack.of(p_186350_), pStack);
-        }).findFirst();
-    }
-
-    //THE IMPUTED ITEMS MAX STACK SIZE IS FLIPPED TO GET BUNDLE FULLNESS
-    private static int getWeight(ItemStack pStack) {
-        if (pStack.is(Items.BUNDLE)) {
-            return 4 + getContentWeight(pStack);
-        } else {
-            if ((pStack.is(Items.BEEHIVE) || pStack.is(Items.BEE_NEST)) && pStack.hasTag()) {
-                CompoundTag compoundtag = BlockItem.getBlockEntityData(pStack);
-                if (compoundtag != null && !compoundtag.getList("Bees", 10).isEmpty()) {
-                    return 64;
-                }
-            }
-
-            return 64 / pStack.getMaxStackSize();
-        }
-    }
-
-    // Does not PACKAGES CONTENTS COUNT FOR ClientBundleTooltip IDK WHAT THIS DOES
-    private static int getContentWeight(ItemStack pStack) {
-        return getContents(pStack).mapToInt((p_186356_) -> {
-            return getWeight(p_186356_) * p_186356_.getCount();
-        }).sum();
-    }
-
+    // REMOVES ITEMS FROM BACKPACK
     private static Optional<ItemStack> removeOne(ItemStack pStack) {
         CompoundTag compoundtag = pStack.getOrCreateTag();
         if (!compoundtag.contains("Items")) {
@@ -179,20 +204,9 @@ public final class BackpackType extends Item implements Equipable {
         }
     }
 
-    private static Stream<ItemStack> getContents(ItemStack pStack) {
-        CompoundTag compoundtag = pStack.getTag();
-        if (compoundtag == null) {
-            return Stream.empty();
-        } else {
-            ListTag listtag = compoundtag.getList("Items", 10);
-            return listtag.stream().map(CompoundTag.class::cast).map(ItemStack::of);
-        }
-    }
-
     /**
-     * GUI ELEMENTS
+     * GUI DISPLAY ELEMENTS
      **/
-
     // DRAWS THE BAG'S FULLNESS BAR
     public boolean isBarVisible(ItemStack pStack) {
         return getContentWeight(pStack) > 0;
@@ -230,15 +244,33 @@ public final class BackpackType extends Item implements Equipable {
         ItemUtils.onContainerDestroyed(pItemEntity, getContents(pItemEntity.getItem()));
     }
 
+    /**
+     * SOUND
+     **/
+
+    float Volume = 0.8F;
+    float Pitch = 0.8F;
+
     private void playRemoveOneSound(Entity pEntity) {
-        pEntity.playSound(SoundEvents.BUNDLE_REMOVE_ONE, 0.8F, 0.8F + pEntity.level().getRandom().nextFloat() * 0.4F);
+        if(Objects.equals(TYPE, "iron")) {
+            Volume = 0.4F;
+            Pitch = 0.6F;
+            pEntity.playSound(SoundEvents.ARMOR_EQUIP_IRON, Volume, 1F +
+                    pEntity.level().getRandom().nextFloat() * 0.4F);
+        }
+        pEntity.playSound(SoundEvents.BUNDLE_REMOVE_ONE, Volume, Pitch +
+                pEntity.level().getRandom().nextFloat() * 0.4F);
     }
 
     private void playInsertSound(Entity pEntity) {
-        pEntity.playSound(SoundEvents.BUNDLE_INSERT, 0.8F, 0.8F + pEntity.level().getRandom().nextFloat() * 0.4F);
+        if(Objects.equals(TYPE, "iron")) {
+            Volume = 0.4F;
+            Pitch = 0.6F;
+            pEntity.playSound(SoundEvents.ARMOR_EQUIP_IRON, Volume, 1.6F +
+                    pEntity.level().getRandom().nextFloat() * 0.4F);
+        }
+        pEntity.playSound(SoundEvents.BUNDLE_INSERT, Volume, Pitch +
+                pEntity.level().getRandom().nextFloat() * 0.4F);
     }
 
-    private void playDropContentsSound(Entity pEntity) {
-        pEntity.playSound(SoundEvents.BUNDLE_DROP_CONTENTS, 0.8F, 0.8F + pEntity.level().getRandom().nextFloat() * 0.4F);
-    }
 }
