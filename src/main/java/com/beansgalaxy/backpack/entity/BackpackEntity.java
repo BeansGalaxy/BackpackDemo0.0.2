@@ -1,41 +1,30 @@
 package com.beansgalaxy.backpack.entity;
 
-import com.ibm.icu.impl.CalendarCache;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.decoration.HangingEntity;
-import net.minecraft.world.entity.decoration.LeashFenceKnotEntity;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
-public class BackpackEntity extends Entity {
-    public BackpackEntity(EntityType<BackpackEntity> type, Level level) {
+public class BackpackEntity extends HangingEntity {
+
+    public BackpackEntity(EntityType<? extends HangingEntity> type, Level level) {
         super(type, level);
     }
 
-    protected BlockPos pos;
-    protected Direction direction = Direction.SOUTH;
+    /**
+     *  BOUNDING BOX CALCULATIONS
+     */
 
-    public void setPos(double x, double y, double z) {
-        this.pos = BlockPos.containing(x, y, z);
-        this.recalculateBoundingBox();
-        this.hasImpulse = true;
-    }
+    public Direction direction = Direction.SOUTH;
 
     public int getWidth() {
         return 8;
     }
-
     public int getHeight() {
         return 10;
     }
-
     public int getDepth() {
         return 6;
     }
@@ -43,7 +32,7 @@ public class BackpackEntity extends Entity {
     private double offs(int p_31710_) {
         return p_31710_ % 32 == 0 ? 0.5D : 0.0D;
     }
-
+    @Override
     protected void recalculateBoundingBox() {
         if (this.direction != null) {
             double x0 = this.pos.getX() + 0.5D;
@@ -74,18 +63,25 @@ public class BackpackEntity extends Entity {
         }
     }
 
+    /**
+     *  NECESSARY CLASSES AND VARIABLES
+     **/
+
     @Override
-    protected void defineSynchedData() {
+    public void dropItem(@Nullable Entity p_31717_) {
 
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag p_20052_) {
+    public void playPlacementSound() {
 
     }
 
-    @Override
-    protected void addAdditionalSaveData(CompoundTag p_20139_) {
-
+    public boolean survives() {
+        return true;
     }
+
 }
+
+
+

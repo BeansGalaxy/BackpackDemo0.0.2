@@ -1,6 +1,10 @@
 package com.beansgalaxy.backpack.item;
 
+import com.beansgalaxy.backpack.entity.BackpackEntity;
+import com.beansgalaxy.backpack.init.EntityInit;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -9,11 +13,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.SlotAccess;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.decoration.HangingEntity;
+import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.entity.decoration.Painting;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
@@ -21,8 +25,11 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.BundleTooltip;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DispenserBlock;
+import net.minecraft.world.level.gameevent.GameEvent;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -30,8 +37,9 @@ import java.util.stream.Stream;
 
 
 public class BackpackType extends Item implements Equipable {
-    public BackpackType(Properties pProperties, int bpStacks, String bpType) {
-        super(pProperties);
+
+    public BackpackType(int bpStacks, String bpType) {
+        super(new Item.Properties().stacksTo(1));
         DispenserBlock.registerBehavior(this, ArmorItem.DISPENSE_ITEM_BEHAVIOR);
         this.MAX_STACK = bpStacks;
         this.MAX_ITEMS = bpStacks * 64;
@@ -43,16 +51,40 @@ public class BackpackType extends Item implements Equipable {
 
     private static final int BAR_COLOR = Mth.color(0.4F, 0.4F, 1.0F);
 
-    // IF RIGHT-CLICKED WHEN HELD, PLACES BACKPACK ONTO BACK
-    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
-        return this.swapWithEquipmentSlot(this, pLevel, pPlayer, pHand); }
+    /**
+     * CREATES BACKPACK ENTITY FROM BACKPACK ITEM
+     **/
+    // PLACES BACKPACK
+    public InteractionResult useOn(UseOnContext ctx) {
+        BlockPos blockpos = ctx.getClickedPos();
+        Direction direction = ctx.getClickedFace();
+        BlockPos blockpos1 = blockpos.relative(direction);
+        Player player = ctx.getPlayer();
+        ItemStack itemstack = ctx.getItemInHand();
+
+        if (player != null && !this.mayPlace(player, direction, itemstack, blockpos1)) { return InteractionResult.FAIL; } else {
+            Level level = ctx.getLevel();
+            //BackpackEntity hangingentity = new BackpackEntity( , level);
+            HangingEntity hangingentity = new ItemFrame(level, blockpos1, direction);
+            if (hangingentity.survives()) {
+                if (!level.isClientSide) {
+                    hangingentity.playPlacementSound();
+                    level.gameEvent(player, GameEvent.ENTITY_PLACE, hangingentity.position());
+                    level.addFreshEntity(hangingentity); }
+                itemstack.shrink(1);
+                return InteractionResult.sidedSuccess(level.isClientSide);
+            } else { return InteractionResult.CONSUME; } } }
+    protected boolean mayPlace(Player p_41326_, Direction p_41327_, ItemStack p_41328_, BlockPos p_41329_) {
+        return !p_41327_.getAxis().isVertical() && p_41326_.mayUseItemAt(p_41329_, p_41327_, p_41328_);
+    }
+
+
     public SoundEvent getEquipSound() {
         return SoundEvents.ARMOR_EQUIP_ELYTRA;
     }
     public EquipmentSlot getEquipmentSlot() {
         return EquipmentSlot.CHEST;
     }
-
     /**
      * UNDER THE HOOD CALCULATIONS
      **/
@@ -272,5 +304,4 @@ public class BackpackType extends Item implements Equipable {
         pEntity.playSound(SoundEvents.BUNDLE_INSERT, Volume, Pitch +
                 pEntity.level().getRandom().nextFloat() * 0.4F);
     }
-
 }
