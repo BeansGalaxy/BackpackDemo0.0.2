@@ -23,7 +23,8 @@ public class BackpackEntityModel<T extends Entity> extends EntityModel<T> {
 		MeshDefinition meshdefinition = new MeshDefinition();
 		PartDefinition partdefinition = meshdefinition.getRoot();
 
-		PartDefinition body = partdefinition.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 8).addBox(-4.0F, 0.0F, -4.0F, 8.0F, 8.0F, 4.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 15.0F, 0.0F));
+		PartDefinition body = partdefinition.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 8)
+				.addBox(-4.0F, 0.0F, -4.0F, 8.0F, 8.0F, 4.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 15.0F, 0.0F));
 
 		PartDefinition bottomMask_r1 = body.addOrReplaceChild("bottomMask_r1", CubeListBuilder.create().texOffs(-5, 20).addBox(-4.0F, -0.03F, -4.2F, 8.0F, 0.0F, 4.2F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 0.7F, 0.0F, 0.3229F, 0.0F, 0.0F));
 

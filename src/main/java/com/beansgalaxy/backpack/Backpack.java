@@ -2,7 +2,6 @@ package com.beansgalaxy.backpack;
 
 import com.beansgalaxy.backpack.init.EntityInit;
 import com.beansgalaxy.backpack.init.ItemInit;
-import net.minecraft.world.item.ItemFrameItem;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;

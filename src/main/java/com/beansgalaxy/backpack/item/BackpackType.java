@@ -17,9 +17,10 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.decoration.HangingEntity;
 import net.minecraft.world.entity.decoration.ItemFrame;
-import net.minecraft.world.entity.decoration.Painting;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.vehicle.ChestBoat;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.BundleTooltip;
@@ -29,6 +30,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.HitResult;
 
 import java.util.List;
 import java.util.Objects;
@@ -48,12 +50,12 @@ public class BackpackType extends Item implements Equipable {
     public String TYPE;
     public int MAX_STACK;
     private int MAX_ITEMS;
-
     private static final int BAR_COLOR = Mth.color(0.4F, 0.4F, 1.0F);
+    public EquipmentSlot getEquipmentSlot() {
+        return EquipmentSlot.CHEST;
+    }
 
-    /**
-     * CREATES BACKPACK ENTITY FROM BACKPACK ITEM
-     **/
+    /** CREATES BACKPACK ENTITY FROM BACKPACK ITEM **/
     // PLACES BACKPACK
     public InteractionResult useOn(UseOnContext ctx) {
         BlockPos blockpos = ctx.getClickedPos();
@@ -61,11 +63,18 @@ public class BackpackType extends Item implements Equipable {
         BlockPos blockpos1 = blockpos.relative(direction);
         Player player = ctx.getPlayer();
         ItemStack itemstack = ctx.getItemInHand();
-
-        if (player != null && !this.mayPlace(player, direction, itemstack, blockpos1)) { return InteractionResult.FAIL; } else {
+         if (player != null && !this.mayPlace(player, direction, itemstack, blockpos1))
+            { return InteractionResult.FAIL;
+        } else if (direction != Direction.DOWN) {
             Level level = ctx.getLevel();
-            //BackpackEntity hangingentity = new BackpackEntity( , level);
-            HangingEntity hangingentity = new ItemFrame(level, blockpos1, direction);
+            BackpackEntity hangingentity = new BackpackEntity(level, blockpos1, direction);
+            if (direction == Direction.UP) {
+                float Yrot = ctx.getPlayer().getYRot();
+                float Yo = Yrot + 11.25F;
+                float Yoff = Yo % 22.5F;
+                hangingentity.setYRot(Yrot - 180 - 11.25F - Yoff);
+            }
+            //HangingEntity hangingentity = new ItemFrame(level, blockpos1, direction);
             if (hangingentity.survives()) {
                 if (!level.isClientSide) {
                     hangingentity.playPlacementSound();
@@ -73,21 +82,13 @@ public class BackpackType extends Item implements Equipable {
                     level.addFreshEntity(hangingentity); }
                 itemstack.shrink(1);
                 return InteractionResult.sidedSuccess(level.isClientSide);
-            } else { return InteractionResult.CONSUME; } } }
+            } else { return InteractionResult.CONSUME; } } else { return InteractionResult.FAIL; } }
+
     protected boolean mayPlace(Player p_41326_, Direction p_41327_, ItemStack p_41328_, BlockPos p_41329_) {
-        return !p_41327_.getAxis().isVertical() && p_41326_.mayUseItemAt(p_41329_, p_41327_, p_41328_);
+        return p_41327_ != Direction.DOWN && p_41326_.mayUseItemAt(p_41329_, p_41327_, p_41328_);
     }
 
-
-    public SoundEvent getEquipSound() {
-        return SoundEvents.ARMOR_EQUIP_ELYTRA;
-    }
-    public EquipmentSlot getEquipmentSlot() {
-        return EquipmentSlot.CHEST;
-    }
-    /**
-     * UNDER THE HOOD CALCULATIONS
-     **/
+    /** UNDER THE HOOD CALCULATIONS **/
     // UNSURE  : SOMETHING TO DO WITH ALLOWING THE PLAYER TO PLACE ITEMS INTO BACKPACK
     public boolean overrideStackedOnOther(ItemStack pStack, Slot pSlot, ClickAction pAction, Player pPlayer) {
         if (pStack.getCount() != 1 || pAction != ClickAction.SECONDARY) {
@@ -131,7 +132,6 @@ public class BackpackType extends Item implements Equipable {
             return false;
         }
     }
-
     //THE IMPUTED ITEMS MAX STACK SIZE IS FLIPPED TO GET BUNDLE FULLNESS
     private static int getWeight(ItemStack pStack) {
         if (pStack.is(Items.BUNDLE)) {
@@ -147,14 +147,12 @@ public class BackpackType extends Item implements Equipable {
             return 64 / pStack.getMaxStackSize();
         }
     }
-
     // ADDS WEIGHT OF ALL ITEMS CURRENTLY INSIDE BACKPACK
     private static int getContentWeight(ItemStack pStack) {
         return getContents(pStack).mapToInt((p_186356_) -> {
             return getWeight(p_186356_) * p_186356_.getCount();
         }).sum();
     }
-
     // VIEWS ALL ITEMS INSIDE BACKPACK
     private static Stream<ItemStack> getContents(ItemStack pStack) {
         CompoundTag compoundtag = pStack.getTag();
@@ -166,15 +164,12 @@ public class BackpackType extends Item implements Equipable {
         }
     }
 
-    /**
-     * GUI INTERACTIONS
-     **/
+    /** GUI INTERACTIONS **/
     // UNSURE  : MIGHT DETERMINE IF ITEM GOING IN HAS A MATCH
     private static Optional<CompoundTag> getMatchingItem(ItemStack pStack, ListTag pList) {
         return pStack.is(Items.BUNDLE) ? Optional.empty() : pList.stream().filter(CompoundTag.class::isInstance).map(CompoundTag.class::cast)
                 .filter((p_186350_) -> ItemStack.isSameItemSameTags(ItemStack.of(p_186350_), pStack)).findFirst();
     }
-
     // STORES ITEMS INTO BACKPACK
     private int add(ItemStack pBundleStack, ItemStack pInsertedStack) {
         if (!pInsertedStack.isEmpty() && pInsertedStack.getItem().canFitInsideContainerItems()) {
@@ -212,7 +207,6 @@ public class BackpackType extends Item implements Equipable {
             return 0;
         }
     }
-
     // REMOVES ITEMS FROM BACKPACK
     private static Optional<ItemStack> removeOne(ItemStack pStack) {
         CompoundTag compoundtag = pStack.getOrCreateTag();
@@ -236,29 +230,23 @@ public class BackpackType extends Item implements Equipable {
         }
     }
 
-    /**
-     * GUI DISPLAY ELEMENTS
-     **/
+    /** GUI DISPLAY ELEMENTS **/
     // DRAWS THE BAG'S FULLNESS BAR
     public boolean isBarVisible(ItemStack pStack) {
         return getContentWeight(pStack) > 0;
     }
-
     public int getBarWidth(ItemStack pStack) {
         return Math.min(1 + 12 * getContentWeight(pStack) / MAX_ITEMS, 13);
     }
-
     public int getBarColor(ItemStack pStack) {
         return BAR_COLOR;
     }
-
     //SOMEHOW ADDS THE LITTLE MENU THINGY TO SEE WHAT'S INSIDE THE BUNDLE OR TO GRAB THE ITEMS INSIDE
     public Optional<TooltipComponent> getTooltipImage(ItemStack pStack) {
         NonNullList<ItemStack> nonnulllist = NonNullList.create();
         getContents(pStack).forEach(nonnulllist::add);
         return Optional.of(new BundleTooltip(nonnulllist, getContentWeight(pStack) - MAX_ITEMS + 64));
     }
-
     //Adds amount the bundle is filled to the tool tip
     private static int getStackWeightRemainder(ItemStack pStack) {
         return getContentWeight(pStack) % 64;
@@ -271,18 +259,16 @@ public class BackpackType extends Item implements Equipable {
                 getContentWeight(pStack) / 64, MAX_STACK, "").withStyle(ChatFormatting.GRAY));
 
     }
-
     public void onDestroyed(ItemEntity pItemEntity) {
         ItemUtils.onContainerDestroyed(pItemEntity, getContents(pItemEntity.getItem()));
     }
 
-    /**
-     * SOUND
-     **/
-
+    /** SOUND **/
     float Volume = 0.8F;
     float Pitch = 0.8F;
-
+    public SoundEvent getEquipSound() {
+        return SoundEvents.ARMOR_EQUIP_ELYTRA;
+    }
     private void playRemoveOneSound(Entity pEntity) {
         if(Objects.equals(TYPE, "iron")) {
             Volume = 0.4F;
@@ -293,7 +279,6 @@ public class BackpackType extends Item implements Equipable {
         pEntity.playSound(SoundEvents.BUNDLE_REMOVE_ONE, Volume, Pitch +
                 pEntity.level().getRandom().nextFloat() * 0.4F);
     }
-
     private void playInsertSound(Entity pEntity) {
         if(Objects.equals(TYPE, "iron")) {
             Volume = 0.4F;

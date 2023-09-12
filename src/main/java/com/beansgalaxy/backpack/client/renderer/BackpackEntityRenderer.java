@@ -12,22 +12,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 
-/**
-public class BackpackEntityRenderer extends EntityRenderer<BackpackEntity> {
-    private static final ResourceLocation TEXTURE =
-            new ResourceLocation(Backpack.MODID, "textures/entity/leather_backpack");
-
-    public BackpackEntityRenderer(EntityRendererProvider.Context ctx) {
-        super(ctx);
-    }
-
-    @Override
-    public ResourceLocation getTextureLocation(BackpackEntity entity) {
-        return TEXTURE;
-    }
-
-}
-**/
 public class BackpackEntityRenderer extends EntityRenderer<BackpackEntity> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(Backpack.MODID, "textures/entity/leather_backpack.png");
     private final BackpackEntityModel<BackpackEntity> model;
@@ -36,24 +20,6 @@ public class BackpackEntityRenderer extends EntityRenderer<BackpackEntity> {
         super(ctx);
         this.model = new BackpackEntityModel<>(ctx.bakeLayer(BackpackEntityModel.LAYER_LOCATION));
     }
-
-    /**
-
-     Direction direction = this.direction.getCounterClockWise();
-
-    private float pRot() {
-        int r = 0;
-        if (direction == Direction.WEST) {
-            return r = 90;
-        } else if (direction == Direction.NORTH) {
-            return r = 180;
-        } else if (direction == Direction.EAST) {
-            return r = -90;
-        }
-        return r;
-    }
-    **/
-
 
     public void render(BackpackEntity p_115246_, float pRot, float p_115248_, PoseStack pose, MultiBufferSource p_115250_, int p_115251_) {
         pose.pushPose();
