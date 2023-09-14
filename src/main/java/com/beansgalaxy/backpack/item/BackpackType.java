@@ -33,7 +33,6 @@ import java.util.stream.Stream;
 
 
 public class BackpackType extends Item implements Equipable {
-
     public BackpackType(int bpStacks, String bpType) {
         super(new Item.Properties().stacksTo(1));
         DispenserBlock.registerBehavior(this, ArmorItem.DISPENSE_ITEM_BEHAVIOR);
@@ -77,11 +76,9 @@ public class BackpackType extends Item implements Equipable {
                 itemstack.shrink(1);
                 return InteractionResult.sidedSuccess(level.isClientSide);
             } else { return InteractionResult.CONSUME; } } else { return InteractionResult.FAIL; } }
-
     protected boolean mayPlace(Player p_41326_, Direction p_41327_, ItemStack p_41328_, BlockPos p_41329_) {
         return p_41327_ != Direction.DOWN && p_41326_.mayUseItemAt(p_41329_, p_41327_, p_41328_);
     }
-
     /** UNDER THE HOOD CALCULATIONS **/
     // UNSURE  : SOMETHING TO DO WITH ALLOWING THE PLAYER TO PLACE ITEMS INTO BACKPACK
     public boolean overrideStackedOnOther(ItemStack pStack, Slot pSlot, ClickAction pAction, Player pPlayer) {
@@ -283,4 +280,7 @@ public class BackpackType extends Item implements Equipable {
         pEntity.playSound(SoundEvents.BUNDLE_INSERT, Volume, Pitch +
                 pEntity.level().getRandom().nextFloat() * 0.4F);
     }
+
+
 }
+

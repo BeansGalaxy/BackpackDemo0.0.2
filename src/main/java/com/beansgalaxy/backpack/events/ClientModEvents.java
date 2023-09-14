@@ -9,7 +9,7 @@ import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = Backpack.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Backpack.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ClientModEvents {
 
     @SubscribeEvent
@@ -22,4 +22,10 @@ public class ClientModEvents {
         event.registerLayerDefinition(BackpackEntityModel.LAYER_LOCATION, BackpackEntityModel::createBodyLayer);
 
     }
+
+    /**
+     public void registerItemColor(RegisterColorHandlersEvent.Item event) {
+     event.register(BackpackLeatherItem::getBackpackColor, ItemInit.LEATHER_BACKPACK.get()); }
+    **/
+
 }

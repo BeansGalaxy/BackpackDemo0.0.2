@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "backpack:item/leather_backpack",
+    "layer1": "backpack:item/leather_backpack_overlay0",
+    "layer2": "backpack:item/leather_backpack_overlay1"
+  }
+}
