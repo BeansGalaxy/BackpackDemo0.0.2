@@ -25,6 +25,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 import java.util.Objects;
@@ -54,31 +55,25 @@ public class BackpackType extends Item implements Equipable {
         BlockPos blockpos = ctx.getClickedPos();
         Direction direction = ctx.getClickedFace();
         BlockPos blockpos1 = blockpos.relative(direction);
+        Vec3 blockpos2 = blockpos1.getCenter();
         Player player = ctx.getPlayer();
-        ItemStack itemstack = ctx.getItemInHand();
-         if (player != null && !this.mayPlace(player, direction, itemstack, blockpos1))
-            { return InteractionResult.FAIL;
-        } else if (direction != Direction.DOWN) {
-            Level level = ctx.getLevel();
-            BackpackEntity hangingentity = new BackpackEntity(level, blockpos1, direction);
-            if (direction == Direction.UP) {
-                float Yrot = ctx.getPlayer().getYRot();
-                float Yo = Yrot + 11.25F;
-                float Yoff = Yo % 22.5F;
-                hangingentity.setYRot(Yrot - 180 - 11.25F - Yoff);
-            }
-            //HangingEntity hangingentity = new ItemFrame(level, blockpos1, direction);
-            if (hangingentity.survives()) {
-                if (!level.isClientSide) {
-                    hangingentity.playPlacementSound();
-                    level.gameEvent(player, GameEvent.ENTITY_PLACE, hangingentity.position());
-                    level.addFreshEntity(hangingentity); }
-                itemstack.shrink(1);
-                return InteractionResult.sidedSuccess(level.isClientSide);
-            } else { return InteractionResult.CONSUME; } } else { return InteractionResult.FAIL; } }
-    protected boolean mayPlace(Player p_41326_, Direction p_41327_, ItemStack p_41328_, BlockPos p_41329_) {
-        return p_41327_ != Direction.DOWN && p_41326_.mayUseItemAt(p_41329_, p_41327_, p_41328_);
-    }
+        if (player != null && direction == null)
+             { return InteractionResult.FAIL;
+        } else {
+             Level level = ctx.getLevel();
+             float Yrot = (float) Math.toDegrees(Math.atan2(blockpos2.z - player.getZ(), blockpos2.x - player.getX()));
+             if (Yrot < -180 ) {
+                 Yrot += 360;
+             } else if (Yrot > 180) {
+                 Yrot -= 360;
+             }
+            BackpackEntity entBackpack = new BackpackEntity(level, blockpos1, direction, Yrot);
+                 if (!level.isClientSide) {
+                    entBackpack.playPlacementSound();
+                    level.gameEvent(player, GameEvent.ENTITY_PLACE, entBackpack.position());
+                    level.addFreshEntity(entBackpack); }
+                 return InteractionResult.sidedSuccess(level.isClientSide); } }
+
     /** UNDER THE HOOD CALCULATIONS **/
     // UNSURE  : SOMETHING TO DO WITH ALLOWING THE PLAYER TO PLACE ITEMS INTO BACKPACK
     public boolean overrideStackedOnOther(ItemStack pStack, Slot pSlot, ClickAction pAction, Player pPlayer) {

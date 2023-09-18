@@ -5,7 +5,7 @@ import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.ItemStack;
 
 public interface DyeableItemInterface extends DyeableLeatherItem {
-    int DEFAULT_COLOR = 12999733;
+    int DEFAULT_COLOR = 9062433;
 
     @Override
     default boolean hasCustomColor(ItemStack stack) {

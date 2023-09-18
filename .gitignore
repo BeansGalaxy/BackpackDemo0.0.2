@@ -23,3 +23,6 @@ run
 
 # Files from Forge MDK
 forge*changelog.txt
+/src/main/resources/assets/backpack/textures/item/thrownItems/backpack_latch.png
+/src/main/resources/assets/backpack/textures/item/thrownItems/backpack_layer1f.png
+/src/main/resources/assets/backpack/textures/item/thrownItems/backpack_layer1f0.png

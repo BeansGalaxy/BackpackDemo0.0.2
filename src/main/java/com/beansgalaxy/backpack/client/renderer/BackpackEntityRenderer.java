@@ -20,16 +20,16 @@ public class BackpackEntityRenderer extends EntityRenderer<BackpackEntity> {
         this.model = new BackpackEntityModel<>(ctx.bakeLayer(BackpackEntityModel.LAYER_LOCATION));
     }
 
-    public void render(BackpackEntity p_115246_, float pRot, float p_115248_, PoseStack pose, MultiBufferSource p_115250_, int p_115251_) {
+    public void render(BackpackEntity type, float pRot, float p_115248_, PoseStack pose, MultiBufferSource p_115250_, int p_115251_) {
         pose.pushPose();
         pose.mulPose(Axis.YP.rotationDegrees(180.0F - pRot));
         pose.scale(1.0F, -1.0F, 1.0F);
         pose.translate(0.0F, -23.0F / 16, 2.0F / 16);
-        this.model.setupAnim(p_115246_, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
+        this.model.setupAnim(type, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
         VertexConsumer vertexconsumer = p_115250_.getBuffer(this.model.renderType(TEXTURE));
         this.model.renderToBuffer(pose, vertexconsumer, p_115251_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
         pose.popPose();
-        super.render(p_115246_, pRot, p_115248_, pose, p_115250_, p_115251_);
+        super.render(type, pRot, p_115248_, pose, p_115250_, p_115251_);
     }
 
     public ResourceLocation getTextureLocation(BackpackEntity p_115244_) {

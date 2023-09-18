@@ -1,8 +1,9 @@
 package com.beansgalaxy.backpack.init;
 
 import com.beansgalaxy.backpack.Backpack;
-import com.beansgalaxy.backpack.item.BackpackIronItem;
-import com.beansgalaxy.backpack.item.BackpackLeatherItem;
+import com.beansgalaxy.backpack.item.BackpackItemIron;
+import com.beansgalaxy.backpack.item.BackpackItemLeather;
+import com.beansgalaxy.backpack.item.BackpackType;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -12,7 +13,9 @@ public class ItemInit {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Backpack.MODID);
 
     public static final RegistryObject<Item> LEATHER_BACKPACK = ITEMS.register("backpack",
-            ()-> new BackpackLeatherItem(4, "leather"));
+            ()-> new BackpackItemLeather(4, "leather"));
     public static final RegistryObject<Item> IRON_BACKPACK = ITEMS.register("iron_backpack",
-            ()-> new BackpackIronItem(9, "iron"));
+            ()-> new BackpackItemIron(9, "iron"));
+    public static final RegistryObject<Item> ADVENTURE_BACKPACK = ITEMS.register("adventure_backpack",
+            ()-> new BackpackType(6, "leather"));
 }

@@ -1,7 +1,8 @@
 {
   "item.backpack.backpack": "Backpack",
   "item.backpack.iron_backpack": "Iron Backpack",
+  "item.backpack.adventure_backpack": "Adventure Backpack",
   "item.backpack.backpack_fullness" : "%s/%s Stacks",
   "item.backpack.backpack_remainder" : "%s Items +",
-  "entity.backpack.backpack_entity" : "Backpack"
+  "entity.backpack.backpack" : "Backpack"
 }

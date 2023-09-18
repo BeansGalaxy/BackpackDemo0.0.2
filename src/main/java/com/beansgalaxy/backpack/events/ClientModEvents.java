@@ -14,7 +14,7 @@ public class ClientModEvents {
 
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(EntityInit.BACKPACK_ENTITY.get(), BackpackEntityRenderer::new);
+        event.registerEntityRenderer(EntityInit.BACKPACK.get(), BackpackEntityRenderer::new);
     }
 
     @SubscribeEvent
@@ -22,10 +22,5 @@ public class ClientModEvents {
         event.registerLayerDefinition(BackpackEntityModel.LAYER_LOCATION, BackpackEntityModel::createBodyLayer);
 
     }
-
-    /**
-     public void registerItemColor(RegisterColorHandlersEvent.Item event) {
-     event.register(BackpackLeatherItem::getBackpackColor, ItemInit.LEATHER_BACKPACK.get()); }
-    **/
 
 }

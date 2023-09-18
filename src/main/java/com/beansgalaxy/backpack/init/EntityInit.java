@@ -12,9 +12,9 @@ import net.minecraftforge.registries.RegistryObject;
 public class EntityInit {
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, Backpack.MODID);
 
-    public static final RegistryObject<EntityType<BackpackEntity>> BACKPACK_ENTITY = ENTITIES.register("backpack_entity",
-            ()-> EntityType.Builder.<BackpackEntity>of(BackpackEntity::new, MobCategory.AMBIENT)
-                    .sized(1,1)
-                    .build(new ResourceLocation(Backpack.MODID, "backpack_entity").toString())
-    );
-}
+    public static final RegistryObject<EntityType<BackpackEntity>> BACKPACK = ENTITIES.register("backpack",
+            () -> EntityType.Builder.<BackpackEntity>of(BackpackEntity::new, MobCategory.MISC)
+                    .build(new ResourceLocation(Backpack.MODID, "backpack").toString())
+            );
+    }
+
