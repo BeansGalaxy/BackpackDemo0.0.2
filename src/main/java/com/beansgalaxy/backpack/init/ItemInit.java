@@ -17,5 +17,5 @@ public class ItemInit {
     public static final RegistryObject<Item> IRON_BACKPACK = ITEMS.register("iron_backpack",
             ()-> new BackpackItemIron(9, "iron"));
     public static final RegistryObject<Item> ADVENTURE_BACKPACK = ITEMS.register("adventure_backpack",
-            ()-> new BackpackType(6, "leather"));
+            ()-> new BackpackType(6, "adventure"));
 }

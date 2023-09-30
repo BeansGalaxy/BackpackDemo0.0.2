@@ -39,9 +39,9 @@ public class BackpackType extends Item implements Equipable {
         DispenserBlock.registerBehavior(this, ArmorItem.DISPENSE_ITEM_BEHAVIOR);
         this.MAX_STACK = bpStacks;
         this.MAX_ITEMS = bpStacks * 64;
-        this.TYPE = bpType;
+        this.type = bpType;
     }
-    public String TYPE;
+    public String type;
     public int MAX_STACK;
     private int MAX_ITEMS;
     private static final int BAR_COLOR = Mth.color(0.4F, 0.4F, 1.0F);
@@ -57,22 +57,23 @@ public class BackpackType extends Item implements Equipable {
         BlockPos blockpos1 = blockpos.relative(direction);
         Vec3 blockpos2 = blockpos1.getCenter();
         Player player = ctx.getPlayer();
+        ItemStack itemstack = ctx.getItemInHand();
         if (player != null && direction == null)
-             { return InteractionResult.FAIL;
+        { return InteractionResult.FAIL;
         } else {
-             Level level = ctx.getLevel();
-             float Yrot = (float) Math.toDegrees(Math.atan2(blockpos2.z - player.getZ(), blockpos2.x - player.getX()));
-             if (Yrot < -180 ) {
-                 Yrot += 360;
-             } else if (Yrot > 180) {
-                 Yrot -= 360;
-             }
-            BackpackEntity entBackpack = new BackpackEntity(level, blockpos1, direction, Yrot);
-                 if (!level.isClientSide) {
-                    entBackpack.playPlacementSound();
-                    level.gameEvent(player, GameEvent.ENTITY_PLACE, entBackpack.position());
-                    level.addFreshEntity(entBackpack); }
-                 return InteractionResult.sidedSuccess(level.isClientSide); } }
+            Level level = ctx.getLevel();
+            float YRot = (float) Math.toDegrees(Math.atan2(blockpos2.z - player.getZ(), blockpos2.x - player.getX()));
+            if (YRot < -180 ) { YRot += 360; } else if (YRot > 180) { YRot -= 360; }
+            BackpackEntity entBackpack = new BackpackEntity(level, blockpos1, direction, YRot, type, itemstack);
+            if (!direction.getAxis().isHorizontal()) entBackpack.setYRot(YRot + 90);
+            if (!level.isClientSide) {
+                entBackpack.playPlacementSound();
+                level.gameEvent(player, GameEvent.ENTITY_PLACE, entBackpack.position());
+                level.addFreshEntity(entBackpack);
+            }
+            itemstack.shrink(1);
+            return InteractionResult.sidedSuccess(level.isClientSide);
+    }   }
 
     /** UNDER THE HOOD CALCULATIONS **/
     // UNSURE  : SOMETHING TO DO WITH ALLOWING THE PLAYER TO PLACE ITEMS INTO BACKPACK
@@ -256,7 +257,7 @@ public class BackpackType extends Item implements Equipable {
         return SoundEvents.ARMOR_EQUIP_ELYTRA;
     }
     private void playRemoveOneSound(Entity pEntity) {
-        if(Objects.equals(TYPE, "iron")) {
+        if(Objects.equals(type, "iron")) {
             Volume = 0.4F;
             Pitch = 0.6F;
             pEntity.playSound(SoundEvents.ARMOR_EQUIP_IRON, Volume, 1F +
@@ -266,7 +267,7 @@ public class BackpackType extends Item implements Equipable {
                 pEntity.level().getRandom().nextFloat() * 0.4F);
     }
     private void playInsertSound(Entity pEntity) {
-        if(Objects.equals(TYPE, "iron")) {
+        if(Objects.equals(type, "iron")) {
             Volume = 0.4F;
             Pitch = 0.6F;
             pEntity.playSound(SoundEvents.ARMOR_EQUIP_IRON, Volume, 1.6F +

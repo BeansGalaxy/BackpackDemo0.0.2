@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "backpack",
+  "pattern": [
+    "#s#",
+    "# #",
+    "#s#"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:rabbit_hide"
+    },
+    "s": {
+      "item": "minecraft:paper"
+    }
+  },
+  "result": {
+    "item": "backpack:adventure_backpack"
+  }
+}
