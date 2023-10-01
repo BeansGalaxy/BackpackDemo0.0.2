@@ -184,6 +184,7 @@ public class BackpackEntity extends Entity implements ContainerEntity {
 
         return Kind.byInt(k);
     }
+
     // PACKAGES UP THE BACKPACK'S KIND FOR THE RENDERER
     public static enum Kind {
         IRON(3),
@@ -207,6 +208,43 @@ public class BackpackEntity extends Entity implements ContainerEntity {
                 }
             }
             return NONE;
+        }
+    }
+
+    // TELLS RENDERER THE CURRENT BACKPACK OVERLAY
+    public Overlay getOverlay() {
+        int k = 0;
+        switch (this.getBackpackKind()) {
+            case "leather" -> k = 0;
+            case "adventure" -> k = 1;
+            case "iron" -> k = 1;
+            default -> k = 0;
+        }
+
+        return Overlay.byInt(k);
+    }
+
+    // PACKAGES UP THE BACKPACK'S KIND FOR THE RENDERER
+    public static enum Overlay {
+        DIAMOND(1),
+        GOLD(0);
+
+        private static final List<BackpackEntity.Overlay> BY_INT = Stream.of(values()).sorted(Comparator.comparingInt((overlay) -> {
+            return overlay.overlayInt;
+        })).collect(ImmutableList.toImmutableList());
+        private final int overlayInt;
+
+        private Overlay(int p_28900_) {
+            this.overlayInt = p_28900_;
+        }
+
+        public static Overlay byInt(int type) {
+            for(Overlay backpack$overlay : BY_INT) {
+                if (type == backpack$overlay.overlayInt) {
+                    return backpack$overlay;
+                }
+            }
+            return GOLD;
         }
     }
 
