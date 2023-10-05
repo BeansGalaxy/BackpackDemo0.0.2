@@ -7,12 +7,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -27,6 +29,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.ContainerEntity;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.armortrim.ArmorTrim;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -40,10 +43,12 @@ import java.util.stream.Stream;
 public class BackpackEntity extends Entity implements ContainerEntity {
     private static final EntityDataAccessor<String> BACKPACK_KIND = SynchedEntityData.defineId(BackpackEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Integer> BACKPACK_COLOR = SynchedEntityData.defineId(BackpackEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<CompoundTag> BACKPACK_TRIM = SynchedEntityData.defineId(BackpackEntity.class, EntityDataSerializers.COMPOUND_TAG);
     protected static int DEFAULT_BACKPACK_COLOR = 9062433;
     protected BlockPos pos;
     protected double YPosRaw;
     protected Direction direction;
+    protected CompoundTag backpackTrim;
 
     public BackpackEntity(EntityType<?> p_19870_, Level p_19871_) {
         super(p_19870_, p_19871_);
@@ -56,6 +61,8 @@ public class BackpackEntity extends Entity implements ContainerEntity {
         this.setBackpackKind(kind);
         if (item.getTagElement("display") != null)
             this.setBackpackColor(item.getTagElement("display").getInt("color"));
+        else if (item.getTagElement("Trim") != null)
+            this.setBackpackTrim(item.getTagElement("Trim"));
         this.YPosRaw = pos.getY() + 2D / 16;
         this.pos = pos;
         this.setDirection(direction);
@@ -144,14 +151,16 @@ public class BackpackEntity extends Entity implements ContainerEntity {
     public void addAdditionalSaveData(CompoundTag Comp) {
         this.addChestVehicleSaveData(Comp);
         Comp.putByte("Facing", (byte)this.direction.get3DDataValue());
-        Comp.putInt("Color", getBackpackColor());
         Comp.putString("Kind", getBackpackKind());
+        Comp.putInt("Color", getBackpackColor());
+        Comp.put("Trim", getBackpackTrim());
     }
     public void readAdditionalSaveData(CompoundTag Comp) {
         this.readChestVehicleSaveData(Comp);
         this.setDirection(Direction.from3DDataValue(Comp.getByte("Facing")));
-        this.setBackpackColor(Comp.getInt("Color"));
         this.setBackpackKind(Comp.getString("Kind"));
+        this.setBackpackColor(Comp.getInt("Color"));
+        this.setBackpackTrim(Comp.getCompound("Trim"));
     }
     // LOCAL
     public void setBackpackKind(String kind) {
@@ -166,9 +175,17 @@ public class BackpackEntity extends Entity implements ContainerEntity {
     public int getBackpackColor() {
         return this.entityData.get(BACKPACK_COLOR);
     }
+    public CompoundTag getBackpackTrim() {
+        return this.entityData.get(BACKPACK_TRIM);
+    }
+    public void setBackpackTrim(CompoundTag trim) {
+        this.entityData.set(BACKPACK_TRIM, trim);
+    }
     protected void defineSynchedData() {
         this.entityData.define(BACKPACK_KIND, "");
         this.entityData.define(BACKPACK_COLOR, DEFAULT_BACKPACK_COLOR);
+        CompoundTag CompoundTag = new CompoundTag();
+        this.entityData.define(BACKPACK_TRIM, CompoundTag);
     }
 
     /** FOR BACKPACK RENDERER **/
@@ -208,43 +225,6 @@ public class BackpackEntity extends Entity implements ContainerEntity {
                 }
             }
             return NONE;
-        }
-    }
-
-    // TELLS RENDERER THE CURRENT BACKPACK OVERLAY
-    public Overlay getOverlay() {
-        int k = 0;
-        switch (this.getBackpackKind()) {
-            case "leather" -> k = 0;
-            case "adventure" -> k = 1;
-            case "iron" -> k = 1;
-            default -> k = 0;
-        }
-
-        return Overlay.byInt(k);
-    }
-
-    // PACKAGES UP THE BACKPACK'S KIND FOR THE RENDERER
-    public static enum Overlay {
-        DIAMOND(1),
-        GOLD(0);
-
-        private static final List<BackpackEntity.Overlay> BY_INT = Stream.of(values()).sorted(Comparator.comparingInt((overlay) -> {
-            return overlay.overlayInt;
-        })).collect(ImmutableList.toImmutableList());
-        private final int overlayInt;
-
-        private Overlay(int p_28900_) {
-            this.overlayInt = p_28900_;
-        }
-
-        public static Overlay byInt(int type) {
-            for(Overlay backpack$overlay : BY_INT) {
-                if (type == backpack$overlay.overlayInt) {
-                    return backpack$overlay;
-                }
-            }
-            return GOLD;
         }
     }
 

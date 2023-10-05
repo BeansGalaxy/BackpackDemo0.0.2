@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "backpack:item/iron_backpack",
+    "layer1": "backpack:trims/item/backpack_trim_amethyst"
+  }
+}

@@ -55,17 +55,16 @@ public class BackpackType extends Item implements Equipable {
         BlockPos blockpos = ctx.getClickedPos();
         Direction direction = ctx.getClickedFace();
         BlockPos blockpos1 = blockpos.relative(direction);
-        Vec3 blockpos2 = blockpos1.getCenter();
         Player player = ctx.getPlayer();
         ItemStack itemstack = ctx.getItemInHand();
         if (player != null && direction == null)
         { return InteractionResult.FAIL;
         } else {
             Level level = ctx.getLevel();
-            float YRot = (float) Math.toDegrees(Math.atan2(blockpos2.z - player.getZ(), blockpos2.x - player.getX()));
-            if (YRot < -180 ) { YRot += 360; } else if (YRot > 180) { YRot -= 360; }
+            float YRot = this.RotFromBlock(blockpos1, player);
             BackpackEntity entBackpack = new BackpackEntity(level, blockpos1, direction, YRot, type, itemstack);
-            if (!direction.getAxis().isHorizontal()) entBackpack.setYRot(YRot + 90);
+            if (!direction.getAxis().isHorizontal())
+                entBackpack.setYRot(YRot + 90);
             if (!level.isClientSide) {
                 entBackpack.playPlacementSound();
                 level.gameEvent(player, GameEvent.ENTITY_PLACE, entBackpack.position());
@@ -74,6 +73,14 @@ public class BackpackType extends Item implements Equipable {
             itemstack.shrink(1);
             return InteractionResult.sidedSuccess(level.isClientSide);
     }   }
+
+    private float RotFromBlock(BlockPos Bpos, Player player) {
+        Vec3 Cpos = Bpos.getCenter();
+        float YRot = (float) Math.toDegrees(Math.atan2(Cpos.z - player.getZ(), Cpos.x - player.getX()));
+        if (YRot < -180 ) YRot += 360;
+            else if (YRot > 180) YRot -= 360;
+        return YRot;
+    }
 
     /** UNDER THE HOOD CALCULATIONS **/
     // UNSURE  : SOMETHING TO DO WITH ALLOWING THE PLAYER TO PLACE ITEMS INTO BACKPACK
