@@ -15,9 +15,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ArmorMaterials;
-import net.minecraft.world.item.armortrim.ArmorTrim;
 
 import java.awt.*;
 import java.util.Map;
@@ -28,9 +26,8 @@ public class BackpackEntityRenderer extends EntityRenderer<BackpackEntity> {
             BackpackEntity.Kind.LEATHER, new ResourceLocation("backpack:textures/entity/backpack/leather.png"),
             BackpackEntity.Kind.ADVENTURE, new ResourceLocation("backpack:textures/entity/backpack/adventure.png"),
             BackpackEntity.Kind.IRON, new ResourceLocation("backpack:textures/entity/backpack/iron.png"));
-    private static final ResourceLocation OVERLAY_GOLD = new ResourceLocation(Backpack.MODID, "textures/entity/backpack/overlay_gold.png");
-    private static final ResourceLocation OVERLAY_DIAMOND = new ResourceLocation(Backpack.MODID, "textures/entity/backpack/overlay_diamond.png");
     private static final ResourceLocation OVERLAY_AMETHYST = new ResourceLocation(Backpack.MODID, "textures/entity/backpack/overlay_amethyst.png");
+    private static final ResourceLocation OVERLAY_LEATHER = new ResourceLocation(Backpack.MODID, "textures/entity/backpack/overlay_leather.png");
 
     private final BackpackEntityModel<BackpackEntity> model;
     private final TextureAtlas armorTrimAtlas;
@@ -55,35 +52,42 @@ public class BackpackEntityRenderer extends EntityRenderer<BackpackEntity> {
         ResourceLocation resourcelocation = resourceLocations.get(backpack$kind);
         VertexConsumer vertexConsumer = mbs.getBuffer(this.model.renderType(resourcelocation));
         Color color = new Color(0xFFFFFF);
-        ResourceLocation overlayLocation = OVERLAY_DIAMOND;
-        if (backpack$kind == BackpackEntity.Kind.LEATHER) {
+        if (backpack$kind == BackpackEntity.Kind.LEATHER)
             color = new Color(type.getBackpackColor());
-            if (!isYellow(color)) overlayLocation = OVERLAY_GOLD;
-            else overlayLocation = OVERLAY_AMETHYST;
-        }
         this.model.renderToBuffer(pose, vertexConsumer, i, OverlayTexture.NO_OVERLAY, color.getRed() / 255F, color.getGreen() / 255F, color.getBlue() / 255F, 1.0F);
-        VertexConsumer consumerLayer = mbs.getBuffer(RenderType.entityTranslucent(overlayLocation));
-        this.model.renderToBuffer(pose, consumerLayer, i, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
         if (backpack$kind == BackpackEntity.Kind.IRON && !type.getBackpackTrim().getString("material").isEmpty())
             BackpackTrim.getBackpackTrim(type.level().registryAccess(), type.getBackpackTrim()).ifPresent((p_289638_) -> {
-                this.renderTrim(ArmorMaterials.IRON, pose, mbs, i, p_289638_);
+                this.renderTrim(pose, mbs, i, p_289638_);
             });
+        else if (backpack$kind == BackpackEntity.Kind.LEATHER)this.renderOverlay(pose, i, mbs, color, backpack$kind);
         pose.popPose();
         super.render(type, pRot, p_115248_, pose, mbs, i);
     }
 
-    private void renderTrim(ArmorMaterial armorMaterial, PoseStack pose, MultiBufferSource mbs, int i, BackpackTrim armorTrim) {
-        TextureAtlasSprite textureatlassprite = this.armorTrimAtlas.getSprite(armorTrim.backpackTexture(armorMaterial));
+    private void renderOverlay(PoseStack pose, int i, MultiBufferSource mbs, Color color, BackpackEntity.Kind backpack$kind) {
+        VertexConsumer overlayLayer = mbs.getBuffer(RenderType.entityTranslucent(OVERLAY_LEATHER));
+        this.model.renderToBuffer(pose, overlayLayer, i, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        if (isYellow(color)) {
+            VertexConsumer consumerLayer = mbs.getBuffer(RenderType.entityCutout(OVERLAY_AMETHYST));
+            this.model.renderToBuffer(pose, consumerLayer, i, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        }
+    }
+
+    private void renderTrim(PoseStack pose, MultiBufferSource mbs, int i, BackpackTrim backpackTrim) {
+        TextureAtlasSprite textureatlassprite = this.armorTrimAtlas.getSprite(backpackTrim.backpackTexture(ArmorMaterials.IRON));
         VertexConsumer vertexconsumer = textureatlassprite.wrap(mbs.getBuffer(Sheets.armorTrimsSheet()));
         this.model.renderToBuffer(pose, vertexconsumer, i, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
     }
+
 
     public boolean isYellow(Color color) {
         int red = color.getRed();
         int blue = color.getBlue();
         int green = color.getGreen();
 
-        if (red + green + blue > 650) return false;
+        // BRIGHTNESS
+        if (red + green + blue > 600) return false;
+        //DARKNESS
         if (red + green <333) return false;
 
         float min = Math.min(Math.min(red, green), blue);
@@ -100,10 +104,10 @@ public class BackpackEntityRenderer extends EntityRenderer<BackpackEntity> {
         else
             hue = 4f + (red - green) / (max - min);
 
-
         hue = hue * 60;
         if (hue < 0) hue = hue + 360;
 
-        return 35 < Math.round(hue) && 60 > Math.round(hue);
+        // LOWER TOWARDS RED, HIGHER TOWARDS GREEN
+        return 40 < Math.round(hue) && 60 > Math.round(hue);
     }
 }

@@ -3,8 +3,6 @@ package com.beansgalaxy.backpack;
 import com.beansgalaxy.backpack.init.EntityInit;
 import com.beansgalaxy.backpack.init.ItemInit;
 import com.beansgalaxy.backpack.item.BackpackItemLeather;
-import com.ibm.icu.impl.ICUNotifier;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;

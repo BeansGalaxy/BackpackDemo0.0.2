@@ -32,7 +32,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-
 public class BackpackType extends Item implements Equipable {
     public BackpackType(int bpStacks, String bpType) {
         super(new Item.Properties().stacksTo(1));

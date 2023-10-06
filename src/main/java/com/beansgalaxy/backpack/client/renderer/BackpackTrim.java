@@ -22,15 +22,12 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public class BackpackTrim extends ArmorTrim {
-    public static final Codec<BackpackTrim> CODEC = RecordCodecBuilder.create((p_267058_) -> {
-        return p_267058_.group(TrimMaterial.CODEC.fieldOf("material").forGetter(BackpackTrim::material),
-                TrimPattern.CODEC.fieldOf("pattern").forGetter(BackpackTrim::pattern)).apply(p_267058_, BackpackTrim::new);
-    });
+    public static final Codec<BackpackTrim> CODEC = RecordCodecBuilder.create((p_267058_) ->
+            p_267058_.group(TrimMaterial.CODEC.fieldOf("material").forGetter(BackpackTrim::material),
+            TrimPattern.CODEC.fieldOf("pattern").forGetter(BackpackTrim::pattern)).apply(p_267058_, BackpackTrim::new));
     private static final Logger LOGGER = LogUtils.getLogger();
     private final Function<ArmorMaterial, ResourceLocation> backpackTexture;
     private final Holder<TrimMaterial> material;
-
-
 
     public BackpackTrim(Holder<TrimMaterial> p_267249_, Holder<TrimPattern> p_267212_) {
         super(p_267249_, p_267212_);
@@ -38,9 +35,8 @@ public class BackpackTrim extends ArmorTrim {
         this.backpackTexture = Util.memoize((p_267932_) -> {
             ResourceLocation resourcelocation = p_267212_.value().assetId();
             String s = this.getColorPaletteSuffix(p_267932_);
-            return resourcelocation.withPath((p_266864_) -> {
-                return "trims/models/backpack/" + p_266864_ + "_" + s;
-            });
+            return resourcelocation.withPath((p_266864_) ->
+                    "trims/models/backpack/" + p_266864_ + "_" + s);
         });
     }
 
@@ -51,8 +47,8 @@ public class BackpackTrim extends ArmorTrim {
 
     public static Optional<BackpackTrim> getBackpackTrim(RegistryAccess p_266952_, CompoundTag compoundtag) {
         if (compoundtag != null) {
-            BackpackTrim armortrim = CODEC.parse(RegistryOps.create(NbtOps.INSTANCE, p_266952_), compoundtag).resultOrPartial(LOGGER::error).orElse((BackpackTrim)null);
-            return Optional.ofNullable(armortrim);
+            BackpackTrim backpack$trim = CODEC.parse(RegistryOps.create(NbtOps.INSTANCE, p_266952_), compoundtag).resultOrPartial(LOGGER::error).orElse(null);
+            return Optional.ofNullable(backpack$trim);
         } else {
             return Optional.empty();
         }
