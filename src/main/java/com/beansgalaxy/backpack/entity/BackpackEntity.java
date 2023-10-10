@@ -1,7 +1,6 @@
 package com.beansgalaxy.backpack.entity;
 
-import com.beansgalaxy.backpack.init.EntityInit;
-import com.beansgalaxy.backpack.init.ItemInit;
+import com.beansgalaxy.backpack.Backpack;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -18,8 +17,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.*;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -28,6 +26,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.ContainerEntity;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.armortrim.ArmorTrim;
 import net.minecraft.world.level.GameRules;
@@ -40,7 +40,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class BackpackEntity extends Entity implements ContainerEntity {
+public class BackpackEntity extends Entity implements BackpackContainer {
     private static final EntityDataAccessor<String> BACKPACK_KIND = SynchedEntityData.defineId(BackpackEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Integer> BACKPACK_COLOR = SynchedEntityData.defineId(BackpackEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<CompoundTag> BACKPACK_TRIM = SynchedEntityData.defineId(BackpackEntity.class, EntityDataSerializers.COMPOUND_TAG);
@@ -57,7 +57,7 @@ public class BackpackEntity extends Entity implements ContainerEntity {
     /** BACKPACK CREATION **/
     // CREATE BACKPACK ENTITY FROM BACKPACK ITEM
     public BackpackEntity(Level level, BlockPos pos, Direction direction, float YRot, String kind, ItemStack item) {
-        this(EntityInit.BACKPACK.get(), level);
+        this(Backpack.ENTITY.get(), level);
         this.setBackpackKind(kind);
         if (item.getTagElement("display") != null)
             this.setBackpackColor(item.getTagElement("display").getInt("color"));
@@ -121,21 +121,14 @@ public class BackpackEntity extends Entity implements ContainerEntity {
         this.setBoundingBox(new AABB(x - Wx, y, z - Wz, x + Wx, y + H, z + Wz));
     }
 
-    /** IMPLEMENTS GRAVITY TO BACKPACK **/
-    // INCREASES MOMENTUM
+    /** IMPLEMENTS GRAVITY WHEN HUNG BACKPACKS LOOSE SUPPORTING BLOCK **/
     public void tick() {
-        this.setNoGravity(isHung());
+        this.setNoGravity(this.isNoGravity() && !this.level().noCollision(this, this.getBoundingBox().inflate(0.1, -0.1, 0.1)));
         if (!this.isNoGravity()) {
             this.setDeltaMovement(this.getDeltaMovement().add(0.0D, -0.03D, 0.0D));
         }
         this.move(MoverType.SELF, this.getDeltaMovement());
         this.setDeltaMovement(this.getDeltaMovement().scale(0.98D));
-    }
-    // ENABLES GRAVITY IF A HUNG BACKPACK LOOSES THE BLOCK HUNG FROM
-    protected boolean isHung() {
-        if (this.isNoGravity()) {
-            return !this.level().noCollision(this, this.getBoundingBox().inflate(0.1, -0.1, 0.1));
-        } else return false;
     }
 
     /** DATA MANAGEMENT **/
@@ -148,19 +141,19 @@ public class BackpackEntity extends Entity implements ContainerEntity {
         this.setDirection(Direction.from3DDataValue(p_149626_.getData()));
     }
     // NBT
-    public void addAdditionalSaveData(CompoundTag Comp) {
-        this.addChestVehicleSaveData(Comp);
-        Comp.putByte("Facing", (byte)this.direction.get3DDataValue());
-        Comp.putString("Kind", getBackpackKind());
-        Comp.putInt("Color", getBackpackColor());
-        Comp.put("Trim", getBackpackTrim());
+    public void addAdditionalSaveData(CompoundTag tag) {
+        ContainerHelper.saveAllItems(tag, this.getItemStacks());
+        tag.putByte("Facing", (byte)this.direction.get3DDataValue());
+        tag.putString("Kind", getBackpackKind());
+        tag.putInt("Color", getBackpackColor());
+        tag.put("Trim", getBackpackTrim());
     }
-    public void readAdditionalSaveData(CompoundTag Comp) {
-        this.readChestVehicleSaveData(Comp);
-        this.setDirection(Direction.from3DDataValue(Comp.getByte("Facing")));
-        this.setBackpackKind(Comp.getString("Kind"));
-        this.setBackpackColor(Comp.getInt("Color"));
-        this.setBackpackTrim(Comp.getCompound("Trim"));
+    public void readAdditionalSaveData(CompoundTag tag) {
+        ContainerHelper.loadAllItems(tag, this.getItemStacks());
+        this.setDirection(Direction.from3DDataValue(tag.getByte("Facing")));
+        this.setBackpackKind(tag.getString("Kind"));
+        this.setBackpackColor(tag.getInt("Color"));
+        this.setBackpackTrim(tag.getCompound("Trim"));
     }
     // LOCAL
     public void setBackpackKind(String kind) {
@@ -244,7 +237,6 @@ public class BackpackEntity extends Entity implements ContainerEntity {
                 this.markHurt();
                 this.dropItem(p_31715_.getEntity());
             }
-
             return true;
         }
     }
@@ -255,7 +247,7 @@ public class BackpackEntity extends Entity implements ContainerEntity {
                 Player player = (Player)entity;
                 if (player.getAbilities().instabuild) return;
                 this.spawnAtLocation(getBackpackTypeStack(), entity);
-            } else this.spawnAtLocation(ItemInit.LEATHER_BACKPACK.get());
+            } else this.spawnAtLocation(Backpack.LEATHER_BACKPACK.get());
     }   }
     @Nullable
     public ItemEntity spawnAtLocation(ItemStack stack, Entity entity) {
@@ -277,26 +269,17 @@ public class BackpackEntity extends Entity implements ContainerEntity {
     protected ItemStack getBackpackTypeStack() {
         switch (this.getBackpackKind()) {
             case "leather" -> {
-                return ItemInit.LEATHER_BACKPACK.get().getDefaultInstance();
+                return Backpack.LEATHER_BACKPACK.get().getDefaultInstance();
             }
             case "iron" -> {
-                return ItemInit.IRON_BACKPACK.get().getDefaultInstance();
+                return Backpack.IRON_BACKPACK.get().getDefaultInstance();
             }
             default -> {
-                return ItemInit.ADVENTURE_BACKPACK.get().getDefaultInstance();
+                return Backpack.ADVENTURE_BACKPACK.get().getDefaultInstance();
             }
         }
     }
-    // PREFORMS ACTION WHEN IT IS RIGHT-CLICKED
-    public InteractionResult interact(Player player, InteractionHand p_270576_) {
-        InteractionResult interactionresult = this.interactWithContainerVehicle(player);
-        if (interactionresult.consumesAction()) {
-            this.gameEvent(GameEvent.CONTAINER_OPEN, player);
-            PiglinAi.angerNearbyPiglins(player, true);
-        }
 
-        return interactionresult;
-    }
 
     /** REQUIRED FEILDS **/
     public SoundEvent getPlaceSound() {
@@ -314,68 +297,28 @@ public class BackpackEntity extends Entity implements ContainerEntity {
     }
 
 
+    /** INVENTORY SCREEN **/
 
+    // PREFORMS THIS ACTION WHEN IT IS RIGHT-CLICKED
+    public InteractionResult interact(Player player, InteractionHand p_270576_) {
+        InteractionResult interactionresult = this.interactWithContainerVehicle(player);
+        if (interactionresult.consumesAction()) {
+            this.gameEvent(GameEvent.CONTAINER_OPEN, player);
+            PiglinAi.angerNearbyPiglins(player, true);
+        }
+        return interactionresult;
+    }
 
-    /** BLOATED INVENTORY SCREEN **/
-    // TODO: RE-WRITE 'Container Entity' AND REMOVE BLOATED CODE
-    @Nullable
-    private ResourceLocation lootTable;
+    // COMMUNICATES WITH "BackpackContainer"
     private NonNullList<ItemStack> itemStacks = NonNullList.withSize(36, ItemStack.EMPTY);
-    private long lootTableSeed;
-    @Nullable
-    public ResourceLocation getLootTable() {
-        return this.lootTable;
-    }
-    public void setLootTable(@Nullable ResourceLocation p_219859_) {
-        this.lootTable = p_219859_;
-    }
-    public long getLootTableSeed() {
-        return this.lootTableSeed;
-    }
-    public void setLootTableSeed(long p_219857_) {
-        this.lootTableSeed = p_219857_;
+    public void clearItemStacks() {
+        this.itemStacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
     }
     public NonNullList<ItemStack> getItemStacks() {
         return this.itemStacks;
     }
-    public void clearItemStacks() {
-        this.itemStacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-    }
-    public int getContainerSize() {
-        return 27;
-    }
-    public ItemStack getItem(int p_38218_) {
-        return this.getChestVehicleItem(p_38218_);
-    }
-    public ItemStack removeItem(int p_38220_, int p_38221_) {
-        return this.removeChestVehicleItem(p_38220_, p_38221_);
-    }
-    public ItemStack removeItemNoUpdate(int p_38244_) {
-        return this.removeChestVehicleItemNoUpdate(p_38244_);
-    }
-    public void setItem(int p_38225_, ItemStack p_38226_) {
-        this.setChestVehicleItem(p_38225_, p_38226_);
-    }
-    public void setChanged() {
-    }
-    public boolean stillValid(Player p_38230_) {
-        return this.isChestVehicleStillValid(p_38230_);
-    }
-    public void clearContent() {
-        this.clearChestVehicleContent();
-    }
-    @Nullable
-    public AbstractContainerMenu createMenu(int p_38251_, Inventory p_38252_, Player p_38253_) {
-        if (this.lootTable != null && p_38253_.isSpectator()) {
-            return null;
-        } else {
-            this.unpackChestVehicleLootTable(p_38252_.player);
-            return this.createMenu(p_38251_, p_38252_);
-        }
-    }
-    public AbstractContainerMenu createMenu(int p_38496_, Inventory p_38497_) {
-        return BackpackMenu.threeRows(p_38496_, p_38497_, this);
-    }
+
+
 
     /** EVERYTHING BELOW IS FOR TESTING **/
 

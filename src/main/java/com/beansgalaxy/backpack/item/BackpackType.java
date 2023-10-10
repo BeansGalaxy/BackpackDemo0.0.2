@@ -32,7 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class BackpackType extends Item implements Equipable {
+public class BackpackType extends Item implements Equipable, DyeableItemInterface {
     public BackpackType(int bpStacks, String bpType) {
         super(new Item.Properties().stacksTo(1));
         DispenserBlock.registerBehavior(this, ArmorItem.DISPENSE_ITEM_BEHAVIOR);
