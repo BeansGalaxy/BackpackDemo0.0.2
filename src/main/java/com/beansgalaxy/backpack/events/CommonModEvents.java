@@ -1,15 +1,11 @@
 package com.beansgalaxy.backpack.events;
 
 import com.beansgalaxy.backpack.Backpack;
-import com.beansgalaxy.backpack.init.ItemInit;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.data.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.data.event.GatherDataEvent;
@@ -33,7 +29,7 @@ public class CommonModEvents {
         generator.addProvider(event.includeServer(),
                 new ItemTagsProvider(packOutput, lookupProvider, blockTagGenerator.contentsGetter(), Backpack.MODID, existingFileHelper) {
                     protected void addTags(HolderLookup.Provider p_256380_) {
-                        this.tag(ItemTags.TRIMMABLE_ARMOR).add(ItemInit.IRON_BACKPACK.get());
+                        this.tag(ItemTags.TRIMMABLE_ARMOR).add(Backpack.IRON_BACKPACK.get());
                     }});
     }
 }

@@ -22,10 +22,10 @@ import java.util.Map;
 
 public class BackpackEntityRenderer extends EntityRenderer<BackpackEntity> {
     private static final Map<BackpackEntity.Kind, ResourceLocation> resourceLocations = ImmutableMap.of(
-            BackpackEntity.Kind.NONE, new ResourceLocation("backpack:textures/entity/backpack/null.png"),
-            BackpackEntity.Kind.LEATHER, new ResourceLocation("backpack:textures/entity/backpack/leather.png"),
-            BackpackEntity.Kind.ADVENTURE, new ResourceLocation("backpack:textures/entity/backpack/adventure.png"),
-            BackpackEntity.Kind.IRON, new ResourceLocation("backpack:textures/entity/backpack/iron.png"));
+            BackpackEntity.Kind.NONE, new ResourceLocation(Backpack.MODID, "textures/entity/backpack/null.png"),
+            BackpackEntity.Kind.LEATHER, new ResourceLocation(Backpack.MODID, "textures/entity/backpack/leather.png"),
+            BackpackEntity.Kind.ADVENTURE, new ResourceLocation(Backpack.MODID, "textures/entity/backpack/adventure.png"),
+            BackpackEntity.Kind.IRON, new ResourceLocation(Backpack.MODID, "textures/entity/backpack/iron.png"));
     private static final ResourceLocation OVERLAY_AMETHYST = new ResourceLocation(Backpack.MODID, "textures/entity/backpack/overlay_amethyst.png");
     private static final ResourceLocation OVERLAY_LEATHER = new ResourceLocation(Backpack.MODID, "textures/entity/backpack/overlay_leather.png");
 
@@ -40,24 +40,26 @@ public class BackpackEntityRenderer extends EntityRenderer<BackpackEntity> {
     }
 
     public ResourceLocation getTextureLocation(BackpackEntity type) {
-        BackpackEntity.Kind backpack$kind = type.getKind();
+        BackpackEntity.Kind backpack$kind = type.findKind();
         return resourceLocations.get(backpack$kind);
     }
 
     public void render(BackpackEntity type, float pRot, float p_115248_, PoseStack pose, MultiBufferSource mbs, int i) {
         pose.pushPose();
         pose.mulPose(Axis.YP.rotationDegrees(-pRot));
-        this.model.setupAnim(type, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
-        BackpackEntity.Kind backpack$kind = type.getKind();
+        this.model.setupAnim(type, 0.0F, 0.0F, 0.0F, 50F, 0.0F);
+        BackpackEntity.Kind backpack$kind = type.findKind();
         ResourceLocation resourcelocation = resourceLocations.get(backpack$kind);
         VertexConsumer vertexConsumer = mbs.getBuffer(this.model.renderType(resourcelocation));
         Color color = new Color(0xFFFFFF);
         if (backpack$kind == BackpackEntity.Kind.LEATHER)
-            color = new Color(type.getBackpackColor());
+            color = new Color(type.getColor());
+        if (type.isMenu) this.model.isOpenBackpack(this.model.head, true);
+        else this.model.isOpenBackpack(this.model.head, false);
         this.model.renderToBuffer(pose, vertexConsumer, i, OverlayTexture.NO_OVERLAY, color.getRed() / 255F, color.getGreen() / 255F, color.getBlue() / 255F, 1.0F);
-        if (backpack$kind == BackpackEntity.Kind.IRON && !type.getBackpackTrim().getString("material").isEmpty())
-            BackpackTrim.getBackpackTrim(type.level().registryAccess(), type.getBackpackTrim()).ifPresent((p_289638_) -> {
-                this.renderTrim(pose, mbs, i, p_289638_);
+        if (backpack$kind == BackpackEntity.Kind.IRON && type.getTrim() != null)
+            BackpackTrim.getBackpackTrim(type.level().registryAccess(), type.getTrim()).ifPresent((p_289638_) -> {
+                this.renderTrim(pose, mbs, i, p_289638_, type.isMenu);
             });
         else if (backpack$kind == BackpackEntity.Kind.LEATHER)this.renderOverlay(pose, i, mbs, color, backpack$kind);
         pose.popPose();
@@ -73,7 +75,11 @@ public class BackpackEntityRenderer extends EntityRenderer<BackpackEntity> {
         }
     }
 
-    private void renderTrim(PoseStack pose, MultiBufferSource mbs, int i, BackpackTrim backpackTrim) {
+    public void renderTrim(PoseStack pose, MultiBufferSource mbs, int i, BackpackTrim backpackTrim, Boolean isMenu) {
+        if (isMenu) { // LAZY FIX FOR Z-FIGHTING WHEN BACKPACK IS RENDERED IN MENU VIEW
+            pose.scale(1.001F, 1.003F, 1.001F);
+            pose.translate(0.001, -0.0018, 0.001);
+        }
         TextureAtlasSprite textureatlassprite = this.armorTrimAtlas.getSprite(backpackTrim.backpackTexture(ArmorMaterials.IRON));
         VertexConsumer vertexconsumer = textureatlassprite.wrap(mbs.getBuffer(Sheets.armorTrimsSheet()));
         this.model.renderToBuffer(pose, vertexconsumer, i, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);

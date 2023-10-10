@@ -5,5 +5,6 @@
   "item.backpack.adventure_backpack": "Adventure Backpack",
   "item.backpack.backpack_fullness" : "%s/%s Stacks",
   "item.backpack.backpack_remainder" : "%s Items +",
-  "entity.backpack.backpack" : "Backpack"
+  "entity.backpack.backpack" : "Backpack",
+  "menu.title.backpack.menu": "Backpack"
 }

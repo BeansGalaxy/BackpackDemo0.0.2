@@ -13,9 +13,11 @@ import net.minecraft.world.entity.Entity;
 public class BackpackEntityModel<T extends Entity> extends EntityModel<T> {
 	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(new ResourceLocation("modid", "backpackentitymodel"), "main");
 	private final ModelPart body;
+	public ModelPart head;
 
 	public BackpackEntityModel(ModelPart root) {
 		this.body = root.getChild("body");
+		this.head = root.getChild("body").getChild("head");
 	}
 
 	public static LayerDefinition createBodyLayer() {
@@ -38,6 +40,12 @@ public class BackpackEntityModel<T extends Entity> extends EntityModel<T> {
 
 	@Override
 	public void setupAnim(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+
+	}
+
+	public void isOpenBackpack(ModelPart part, boolean open) {
+		if (open) this.head.xRot = -45;
+		else this.head.xRot = 0;
 
 	}
 

@@ -32,7 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class BackpackType extends Item implements Equipable {
+public class BackpackType extends Item implements Equipable, DyeableItemInterface {
     public BackpackType(int bpStacks, String bpType) {
         super(new Item.Properties().stacksTo(1));
         DispenserBlock.registerBehavior(this, ArmorItem.DISPENSE_ITEM_BEHAVIOR);
@@ -61,7 +61,8 @@ public class BackpackType extends Item implements Equipable {
         } else {
             Level level = ctx.getLevel();
             float YRot = this.RotFromBlock(blockpos1, player);
-            BackpackEntity entBackpack = new BackpackEntity(level, blockpos1, direction, YRot, type, itemstack);
+            BackpackEntity entBackpack = new BackpackEntity(level, blockpos1, direction);
+            entBackpack.initDisplay(type, itemstack);
             if (!direction.getAxis().isHorizontal())
                 entBackpack.setYRot(YRot + 90);
             if (!level.isClientSide) {
