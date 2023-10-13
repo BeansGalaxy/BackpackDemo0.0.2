@@ -2,7 +2,6 @@ package com.beansgalaxy.backpack.entity;
 
 import com.beansgalaxy.backpack.Backpack;
 import com.beansgalaxy.backpack.screen.BackpackMenu;
-import com.beansgalaxy.backpack.screen.MenuTypes;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -343,7 +342,7 @@ public class BackpackEntity extends Entity implements BackpackContainer {
         if (p_38253_.isSpectator()) {
             return null;
         } else {
-            return new BackpackMenu(MenuTypes.BACKPACK_MENU.get(), id, inventory, this);
+            return new BackpackMenu(Backpack.BACKPACK_MENU.get(), id, inventory, this);
         }
     }
 

@@ -1,5 +1,6 @@
 package com.beansgalaxy.backpack.screen;
 
+import com.beansgalaxy.backpack.Backpack;
 import com.beansgalaxy.backpack.entity.BackpackEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -19,7 +20,7 @@ public class BackpackMenu extends AbstractContainerMenu {
     public int yOffset = 45;
 
     public BackpackMenu(int id, Inventory inventory, FriendlyByteBuf extraData) {
-        this(MenuTypes.BACKPACK_MENU.get(), id, inventory, new BackpackEntity(inventory.player.level(), extraData.readNbt()));
+        this(Backpack.BACKPACK_MENU.get(), id, inventory, new BackpackEntity(inventory.player.level(), extraData.readNbt()));
     }
 
     public BackpackMenu(MenuType<?> type, int id, Inventory inventory, BackpackEntity entity) {
