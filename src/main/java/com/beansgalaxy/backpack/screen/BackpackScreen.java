@@ -20,8 +20,8 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackMenu> {
     public BackpackScreen(BackpackMenu menu, Inventory inventory, Component p_97743_) {
         super(menu, inventory, p_97743_);
         this.menu = menu;
-        this.imageHeight = 133;
-        this.inventoryLabelY = this.imageHeight - 94 + this.menu.yOffset;
+        this.imageHeight = 256;
+        this.inventoryLabelY = this.imageHeight - 217 + this.menu.invOffset;
     }
 
     protected void init() {
@@ -39,23 +39,23 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackMenu> {
     protected void renderBg(GuiGraphics gGraphics, float p_282737_, int p_281678_, int p_281465_) {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        j += this.menu.yOffset;
-        gGraphics.blit(BACKPACK_GUI, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        j += this.menu.invOffset;
+        gGraphics.blit(BACKPACK_GUI, i, j - 123, 0, 0, this.imageWidth, this.imageHeight);
 
-        renderEntityInInventory(gGraphics, this.width / 2, j + 21, 150, this.menu.backpack);
+        renderEntityInInventory(gGraphics, this.width / 2, j + 24, 168, this.menu.backpack);
 
     }
 
     public void renderEntityInInventory(GuiGraphics guiG, int p_283622_, int p_283401_, int scale, BackpackEntity entity) {
         guiG.pose().pushPose();
-        guiG.pose().translate(p_283622_ + 4, p_283401_, 50);
-        guiG.pose().mulPose(Axis.XP.rotationDegrees(-20));
-        guiG.pose().mulPose(Axis.ZP.rotationDegrees(-5));
+        guiG.pose().translate(p_283622_ + 3, p_283401_, 40);
+        guiG.pose().mulPose(Axis.XP.rotationDegrees(-10));
+        guiG.pose().mulPose(Axis.ZP.rotationDegrees(-1));
         guiG.pose().scale(scale, -scale, scale);
         EntityRenderDispatcher entityrenderdispatcher = this.minecraft.getEntityRenderDispatcher();
         Lighting.setupLevel(new Matrix4f().translate(-0.1F, -0.8F, -0.2F));
         RenderSystem.runAsFancy(() -> {
-            entityrenderdispatcher.render(entity, 0.0D, 0.0D, 0.0D, 25, 1.0F,
+            entityrenderdispatcher.render(entity, 0.0D, 0.0D, 0.0D, 20, 1.0F,
                     guiG.pose(), guiG.bufferSource(), 15728880);
         });
         guiG.flush();

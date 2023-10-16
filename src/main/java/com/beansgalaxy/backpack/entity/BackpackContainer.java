@@ -27,6 +27,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public interface BackpackContainer extends Container, MenuProvider {
@@ -41,8 +42,12 @@ public interface BackpackContainer extends Container, MenuProvider {
     default ItemStack getItem(int p_38218_) {
         return this.getItemStacks().get(p_38218_);
     }
-    default ItemStack removeItem(int p_38220_, int p_38221_) {
-        return ContainerHelper.removeItem(this.getItemStacks(), p_38220_, p_38221_);
+    default ItemStack removeItem(int slot, int p_38221_) {
+        ItemStack removed = ContainerHelper.removeItem(this.getItemStacks(), slot, p_38221_);
+        if (getItemStacks().get(slot).isEmpty()) for (int j = slot ; j < 62; j++) {
+            this.getItemStacks().set(j, this.getItemStacks().get(j + 1).copy());
+        }
+        return removed;
     }
     default ItemStack removeItemNoUpdate(int i) {
         ItemStack itemstack = this.getItemStacks().get(i);
@@ -55,11 +60,18 @@ public interface BackpackContainer extends Container, MenuProvider {
     }
     default void setItem(int i, ItemStack stack) {
         this.getItemStacks().set(i, stack);
+        if (i == 0 && !stack.isEmpty()) {
+            NonNullList<ItemStack> itemList = getItemStacks();
+            for (int j = 62; j > 0; j--)
+                itemList.set(j, itemList.get(j - 1));
+            itemList.set(0, ItemStack.EMPTY);
+        }
         if (!stack.isEmpty() && stack.getCount() > this.getMaxStackSize()) {
             stack.setCount(this.getMaxStackSize());
         }
-
     }
+
+
     boolean isRemoved();
     default boolean stillValid(Player player) {
         return !this.isRemoved() && this.position().closerThan(player.position(), 8.0D);

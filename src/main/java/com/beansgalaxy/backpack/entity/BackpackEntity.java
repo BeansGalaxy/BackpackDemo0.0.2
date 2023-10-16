@@ -263,11 +263,12 @@ public class BackpackEntity extends Entity implements BackpackContainer {
     public void dropItem(@Nullable Entity entity) {
         if (this.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
             this.playSound(this.getBreakSound(), 1.0F, 1.0F);
+            ItemStack item = getBackpackAsItem();
             if (entity instanceof Player) {
                 Player player = (Player)entity;
                 if (player.getAbilities().instabuild) return;
-                this.spawnAtLocation(getBackpackTypeStack(), entity);
-            } else this.spawnAtLocation(Backpack.LEATHER_BACKPACK.get());
+                this.spawnAtLocation(item, entity);
+            } else this.spawnAtLocation(item);
     }   }
     @Nullable
     public ItemEntity spawnAtLocation(ItemStack stack, Entity entity) {
@@ -289,7 +290,7 @@ public class BackpackEntity extends Entity implements BackpackContainer {
         }
     }
     // GIVES THE CORRECT BACKPACK TYPE WHEN BROKEN
-    protected ItemStack getBackpackTypeStack() {
+    protected ItemStack getBackpackAsItem() {
         switch (getKind()) {
             case "leather" -> {
                 return Backpack.LEATHER_BACKPACK.get().getDefaultInstance();
@@ -297,8 +298,11 @@ public class BackpackEntity extends Entity implements BackpackContainer {
             case "iron" -> {
                 return Backpack.IRON_BACKPACK.get().getDefaultInstance();
             }
-            default -> {
+            case "adventure" -> {
                 return Backpack.ADVENTURE_BACKPACK.get().getDefaultInstance();
+            }
+            default -> {
+                return Backpack.NULL_BACKPACK.get().getDefaultInstance();
             }
         }
     }
@@ -333,7 +337,7 @@ public class BackpackEntity extends Entity implements BackpackContainer {
     }
 
     // COMMUNICATES WITH "BackpackContainer"
-    private NonNullList<ItemStack> itemStacks = NonNullList.withSize(36, ItemStack.EMPTY);
+    private NonNullList<ItemStack> itemStacks = NonNullList.withSize(64, ItemStack.EMPTY);
     public NonNullList<ItemStack> getItemStacks() {
         return this.itemStacks;
     }

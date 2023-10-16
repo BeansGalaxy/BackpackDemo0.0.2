@@ -1,6 +1,7 @@
 package com.beansgalaxy.backpack;
 
 import com.beansgalaxy.backpack.entity.BackpackEntity;
+import com.beansgalaxy.backpack.item.BackpackItem;
 import com.beansgalaxy.backpack.screen.BackpackMenu;
 import com.beansgalaxy.backpack.screen.BackpackScreen;
 import com.beansgalaxy.backpack.item.BackpackType;
@@ -57,12 +58,14 @@ public class Backpack {
     public static final RegistryObject<Item> LEATHER_BACKPACK = ITEMS.register("backpack", ()-> new BackpackType(4, "leather"));
     public static final RegistryObject<Item> IRON_BACKPACK = ITEMS.register("iron_backpack", ()-> new BackpackType(9, "iron"));
     public static final RegistryObject<Item> ADVENTURE_BACKPACK = ITEMS.register("adventure_backpack", ()-> new BackpackType(6, "adventure"));
+    public static final RegistryObject<Item> NULL_BACKPACK = ITEMS.register("null_backpack", ()-> new BackpackItem(4, ""));
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         if(event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
             event.accept(LEATHER_BACKPACK);
             event.accept(IRON_BACKPACK);
             event.accept(ADVENTURE_BACKPACK);
+            event.accept(NULL_BACKPACK);
         }
     }
 

@@ -1,5 +1,6 @@
 package com.beansgalaxy.backpack.item;
 
+import com.beansgalaxy.backpack.Backpack;
 import com.beansgalaxy.backpack.entity.BackpackEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -51,30 +52,25 @@ public class BackpackType extends Item implements Equipable, DyeableItemInterfac
     /** CREATES BACKPACK ENTITY FROM BACKPACK ITEM **/
     // PLACES BACKPACK
     public InteractionResult useOn(UseOnContext ctx) {
-        BlockPos blockpos = ctx.getClickedPos();
         Direction direction = ctx.getClickedFace();
-        BlockPos blockpos1 = blockpos.relative(direction);
+        BlockPos blockpos = ctx.getClickedPos().relative(direction);
         Player player = ctx.getPlayer();
         ItemStack itemstack = ctx.getItemInHand();
-        if (player != null && direction == null)
-        { return InteractionResult.FAIL;
-        } else {
-            Level level = ctx.getLevel();
-            float YRot = this.RotFromBlock(blockpos1, player);
-            BackpackEntity entBackpack = new BackpackEntity(level, blockpos1, direction);
-            entBackpack.initDisplay(type, itemstack);
-            if (!direction.getAxis().isHorizontal())
-                entBackpack.setYRot(YRot + 90);
-            if (!level.isClientSide) {
-                entBackpack.playPlacementSound();
-                level.gameEvent(player, GameEvent.ENTITY_PLACE, entBackpack.position());
-                level.addFreshEntity(entBackpack);
-            }
-            itemstack.shrink(1);
-            return InteractionResult.sidedSuccess(level.isClientSide);
-    }   }
+        Level level = ctx.getLevel();
+        BackpackEntity entBackpack = new BackpackEntity(level, blockpos, direction);
+        entBackpack.initDisplay(type, itemstack);
+        if (!direction.getAxis().isHorizontal() && player != null)
+            entBackpack.setYRot(this.rotFromBlock(blockpos, player) + 90);
+        if (!level.isClientSide) {
+            entBackpack.playPlacementSound();
+            level.gameEvent(player, GameEvent.ENTITY_PLACE, entBackpack.position());
+            level.addFreshEntity(entBackpack);
+        }
+        itemstack.shrink(1);
+        return InteractionResult.sidedSuccess(level.isClientSide);
+    }
 
-    private float RotFromBlock(BlockPos Bpos, Player player) {
+    private float rotFromBlock(BlockPos Bpos, Player player) {
         Vec3 Cpos = Bpos.getCenter();
         float YRot = (float) Math.toDegrees(Math.atan2(Cpos.z - player.getZ(), Cpos.x - player.getX()));
         if (YRot < -180 ) YRot += 360;
@@ -89,7 +85,7 @@ public class BackpackType extends Item implements Equipable, DyeableItemInterfac
             return false;
         } else {
             ItemStack itemstack = pSlot.getItem();
-            if (itemstack.isEmpty()) {
+            if (itemstack.isEmpty()) { // IF THE BACKPACK IS EMPTY
                 this.playRemoveOneSound(pPlayer);
                 removeOne(pStack).ifPresent((p_150740_) -> {
                     add(pStack, pSlot.safeInsert(p_150740_));
@@ -105,20 +101,20 @@ public class BackpackType extends Item implements Equipable, DyeableItemInterfac
         }
     }
     // UNSURE
-    public boolean overrideOtherStackedOnMe(ItemStack pStack, ItemStack pOther, Slot pSlot, ClickAction pAction, Player pPlayer, SlotAccess pAccess) {
+    public boolean overrideOtherStackedOnMe(ItemStack pStack, ItemStack bStack, Slot pSlot, ClickAction pAction, Player pPlayer, SlotAccess pAccess) {
         if (pStack.getCount() != 1) return false;
         if (pAction == ClickAction.SECONDARY && pSlot.allowModification(pPlayer)) {
-            if (pOther.isEmpty()) {
+            if (bStack.isEmpty()) {
                 removeOne(pStack).ifPresent((p_186347_) -> {
                     this.playRemoveOneSound(pPlayer);
                     pAccess.set(p_186347_);
                 });
 
             } else {
-                int i = add(pStack, pOther);
+                int i = add(pStack, bStack);
                 if (i > 0) {
                     this.playInsertSound(pPlayer);
-                    pOther.shrink(i);
+                    bStack.shrink(i);
                 }
             }
             return true;
@@ -128,6 +124,9 @@ public class BackpackType extends Item implements Equipable, DyeableItemInterfac
     }
     //THE IMPUTED ITEMS MAX STACK SIZE IS FLIPPED TO GET BUNDLE FULLNESS
     private static int getWeight(ItemStack pStack) {
+        if (pStack.is(Backpack.LEATHER_BACKPACK.get())) return 8 + getContentWeight(pStack);
+        if (pStack.is(Backpack.ADVENTURE_BACKPACK.get())) return 8 + getContentWeight(pStack);
+        if (pStack.is(Backpack.IRON_BACKPACK.get())) return 8 + getContentWeight(pStack);
         if (pStack.is(Items.BUNDLE)) {
             return 4 + getContentWeight(pStack);
         } else {
@@ -159,7 +158,7 @@ public class BackpackType extends Item implements Equipable, DyeableItemInterfac
     }
 
     /** GUI INTERACTIONS **/
-    // UNSURE  : MIGHT DETERMINE IF ITEM GOING IN HAS A MATCH
+    // DETERMINES IF INSTERTED ITEM MATCHES WITH ONE INSIDE THE BACKPACK
     private static Optional<CompoundTag> getMatchingItem(ItemStack pStack, ListTag pList) {
         return pStack.is(Items.BUNDLE) ? Optional.empty() : pList.stream().filter(CompoundTag.class::isInstance).map(CompoundTag.class::cast)
                 .filter((p_186350_) -> ItemStack.isSameItemSameTags(ItemStack.of(p_186350_), pStack)).findFirst();
@@ -172,9 +171,9 @@ public class BackpackType extends Item implements Equipable, DyeableItemInterfac
                 compoundtag.put("Items", new ListTag());
             }
 
-            int i = getContentWeight(pBundleStack);
-            int j = getWeight(pInsertedStack);
-            int k = Math.min(pInsertedStack.getCount(), (MAX_ITEMS - i) / j);
+            int i = getContentWeight(pBundleStack);  // GETS WEIGHT OF TOTAL ITEMS IN BACKPACK
+            int j = getWeight(pInsertedStack);  // GETS WEIGHT OF ONLY THE INSERTED ITEM
+            int k = Math.min(pInsertedStack.getCount(), (MAX_ITEMS - i) / j); // RETURNS THE INSERTED STACK OR THE REMAINING SPACE OVER THE WEIGHT OF THE INSERTED ITEM
             if (k == 0) {
                 return 0;
             } else {

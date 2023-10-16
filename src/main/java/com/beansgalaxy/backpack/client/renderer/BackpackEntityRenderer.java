@@ -77,8 +77,8 @@ public class BackpackEntityRenderer extends EntityRenderer<BackpackEntity> {
 
     public void renderTrim(PoseStack pose, MultiBufferSource mbs, int i, BackpackTrim backpackTrim, Boolean isMenu) {
         if (isMenu) { // LAZY FIX FOR Z-FIGHTING WHEN BACKPACK IS RENDERED IN MENU VIEW
-            pose.scale(1.001F, 1.003F, 1.001F);
-            pose.translate(0.001, -0.0018, 0.001);
+            pose.scale(1.001F, 1.003F, 1.005F);
+            pose.translate(0.001, -0.0017, 0.002);
         }
         TextureAtlasSprite textureatlassprite = this.armorTrimAtlas.getSprite(backpackTrim.backpackTexture(ArmorMaterials.IRON));
         VertexConsumer vertexconsumer = textureatlassprite.wrap(mbs.getBuffer(Sheets.armorTrimsSheet()));

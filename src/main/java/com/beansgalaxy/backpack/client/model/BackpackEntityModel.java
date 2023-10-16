@@ -44,8 +44,8 @@ public class BackpackEntityModel<T extends Entity> extends EntityModel<T> {
 	}
 
 	public void isOpenBackpack(ModelPart part, boolean open) {
-		if (open) this.head.xRot = -45;
-		else this.head.xRot = 0;
+		if (open) part.xRot = 33 / -45F;
+		else part.xRot = 0;
 
 	}
 
